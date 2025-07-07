@@ -1,0 +1,80 @@
+name: CI-CD Workflow
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  AWS_REGION: ap-south-1
+  ECR_REPOSITORY: 923918898299.dkr.ecr.ap-south-1.amazonaws.com/develeap/app
+  IMAGE_TAG: ${{ github.sha }}
+
+jobs:
+  build-test-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+        pip install pytest requests docker-compose
+
+    - name: Run unit tests
+      run: |
+        pytest tests/ --maxfail=1 --disable-warnings
+
+    - name: Build Docker image
+      run: docker build -t $ECR_REPOSITORY:$IMAGE_TAG .
+
+    - name: Start services for E2E test
+      run: docker-compose up -d
+
+    - name: Wait for app to be healthy
+      run: |
+        for i in {1..10}; do
+            curl --fail http://localhost:5000/health && break || sleep 5
+        done
+
+    - name: Run API tests
+      run: pytest tests/
+
+
+    - name: Stop services and teardown
+      run: docker-compose down
+
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: Push to ECR
+      run: |
+        docker tag $ECR_REPOSITORY:$IMAGE_TAG ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
+        docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
+
+    - name: Configure kubectl
+      run: |
+        mkdir -p ~/.kube
+        echo "${{ secrets.KUBECONFIG_DATA }}" | base64 --decode > ~/.kube/config
+        kubectl get nodes
+
+    - name: Deploy to EKS
+      run: |
+        kubectl set image deployment/flask-app flask-app=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
+        kubectl rollout status deployment/flask-app
