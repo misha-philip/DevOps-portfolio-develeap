@@ -1,6 +1,6 @@
-# [PROJECT_NAME]
+# DevOps Portfolio SaaS Application
 
-> [SHORT_PROJECT_DESCRIPTION] - One or two sentences explaining what this project demonstrates.
+> A fully containerized SaaS demo project showcasing CI/CD pipelines, Infrastructure as Code, and Kubernetes microservices deployment on AWS.
 
 ## Table of Contents
 
@@ -18,157 +18,157 @@
 
 ## Overview
 
-Brief description of the project, its purpose, and what DevOps practices it demonstrates.
+This project demonstrates a complete DevOps workflow to build, test, package, and deploy a simple Python Flask application backed by MongoDB to an EKS Kubernetes cluster.
 
 Key features:
 
-- [FEATURE_1]
-- [FEATURE_2]
-- [FEATURE_3]
+- Terraform-managed AWS infrastructure
+- GitHub Actions CI/CD pipeline with automated E2E tests
+- Docker containerization and ECR registry integration
 
 ## Architecture
 
-[ARCHITECTURE_DESCRIPTION]
+This solution consists of a Flask REST API, MongoDB database, and supporting infrastructure deployed via IaC.
 
 ![Architecture Diagram](images/architecture_diagram.png)
 
 ## Technology Stack
 
-| Category             | Technologies   |
-| -------------------- | -------------- |
-| **Infrastructure**   | [TECHNOLOGIES] |
-| **Containerization** | [TECHNOLOGIES] |
-| **CI/CD**            | [TECHNOLOGIES] |
-| **Version Control**  | [TECHNOLOGIES] |
-| **Security**         | [TECHNOLOGIES] |
-| **Application**      | [TECHNOLOGIES] |
-| **Database**         | [TECHNOLOGIES] |
+| Category             | Technologies                                             |
+| -------------------- | -------------------------------------------------------- |
+| **Infrastructure**   | AWS, Terraform                                           |
+| **Containerization** | Docker, docker-compose                                   |
+| **CI/CD**            | GitHub Actions                                           |
+| **Version Control**  | GitHub                                                   |
+| **Security**         | AWS IAM, GitHub Secrets                                  |
+| **Application**      | Python Flask, pymongo                                    |
+| **Database**         | MongoDB                                                  |
 
 ## Repository Structure
 
-```
 project-root/
-├── [DIRECTORY_1]/       # [DESCRIPTION]
-│   ├── [FILE_1]         # [DESCRIPTION]
-│   └── [FILE_2]         # [DESCRIPTION]
-├── [DIRECTORY_2]/       # [DESCRIPTION]
-│   ├── [SUBDIRECTORY_1]/# [DESCRIPTION]
-│   └── [SUBDIRECTORY_2]/# [DESCRIPTION]
-└── [FILE_3]             # [DESCRIPTION]
-```
+├── app/ # Flask application source code
+│ ├── init.py # Application factory and MongoDB setup
+│ ├── models.py # Account model logic
+│ └── routes.py # REST API endpoints
+├── tests/ # Pytest test cases
+│ └── test_api.py # E2E API tests
+├── Dockerfile # Multi-stage Docker build
+├── docker-compose.yaml # Local development stack
+├── Cluster Resources/cluster setup # Infrastructure as Code (EKS cluster)
+│ └── main.tf # Terraform modules and configuration
+├── k8s-manifests/ # Kubernetes deployment and service YAMLs
+│ ├── deployment.yaml # Flask and MongoDB deployments
+│ └── service.yaml # LoadBalancer services
+└── .github/workflows/ # GitHub Actions CI/CD pipeline
+└── ci-cd.yml # Workflow definition
+└── deploy-to-eks.yml # Workflow definition and deployment to eks
+
+markdown
+Copy
+Edit
 
 ## Prerequisites
 
 Requirements for building and running the project:
 
-- [PREREQUISITE_1]
-- [PREREQUISITE_2]
-- [PREREQUISITE_3]
+- AWS CLI installed and configured
+- Terraform v1.0+
+- Docker installed
+- kubectl installed
+- Python 3.9+
+- An AWS account with IAM permissions
 
 ## Getting Started
 
-Follow these instructions to set up the project locally and deploy it to your cloud environment.
+Follow these instructions to set up the project locally and deploy it.
 
 ### Infrastructure Setup
 
-1. **[STEP_1_TITLE]**
+1. **Initialize Terraform and Deploy EKS**
 
 ```bash
-# [STEP_1_COMMAND_EXAMPLE]
-cd [DIRECTORY]
-[COMMAND_1]
-```
-
-2. **[STEP_2_TITLE]**
-
-```bash
-# [STEP_2_COMMAND_EXAMPLE]
-[COMMAND_2]
-```
-
+cd Cluster Resources\cluster setup
+terraform init
+terraform apply
 Expected output:
 
-```
-[EXPECTED_OUTPUT_EXAMPLE]
-```
+yaml
+Copy
+Edit
+Apply complete! Resources: X added, 0 changed, 0 destroyed.
+Configure kubectl
 
-3. **[STEP_3_TITLE]**
+bash
+Copy
+Edit
+aws eks --region us-east-1 update-kubeconfig --name my-eks-cluster
+kubectl get nodes
+Application Deployment
+Build and Push Docker Image
 
-```bash
-[COMMAND_3]
-```
+bash
+Copy
+Edit
+docker build -t my-ecr-repo:latest .
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin <aws_account_id>.dkr.ecr.us-east-1.amazonaws.com
+docker tag my-ecr-repo:latest <aws_account_id>.dkr.ecr.us-east-1.amazonaws.com/my-ecr-repo:latest
+docker push <aws_account_id>.dkr.ecr.us-east-1.amazonaws.com/my-ecr-repo:latest
+Deploy Kubernetes Manifests
 
-### Application Deployment
+bash
+Copy
+Edit
+kubectl apply -f k8s-manifests/deployment.yaml
+kubectl apply -f k8s-manifests/service.yaml
+Verify Deployment
 
-1. **[STEP_1_TITLE]**
+bash
+Copy
+Edit
+kubectl get pods
+kubectl get svc
+Expected result: External LoadBalancer IP for the API.
 
-```bash
-[COMMAND_1]
-```
+CI/CD Pipeline
+This workflow automates build, test, packaging, and deployment.
 
-2. **[STEP_2_TITLE]**
-
-```bash
-[COMMAND_2]
-```
-
-3. **[STEP_3_TITLE]**
-
-```bash
-[COMMAND_3]
-```
-
-Expected result: [EXPECTED_RESULT_DESCRIPTION]
-
-## CI/CD Pipeline
-
-[PIPELINE_DESCRIPTION]
-
-```mermaid
+mermaid
+Copy
+Edit
 graph LR
-    A[Stage 1] --> B[Stage 2]
-    B --> C[Stage 3]
-    C --> D[Stage 4]
-    D --> E[Stage 5]
-```
+    A[Checkout Code] --> B[Install Dependencies]
+    B --> C[Unit Tests]
+    C --> D[Build Docker Image]
+    D --> E[End-to-End Tests]
+    E --> F[Push to ECR]
+    F --> G[Update K8s Deployment]
+Contributing
+This project is not intended for contributions, but if you wish to fork it:
 
-## Contributing
+Fork the repository
 
-(For open source projects)
+Create your feature branch (git checkout -b feature/[FEATURE_NAME])
 
-[CONTRIBUTION_GUIDELINES]
+Commit your changes (git commit -m 'Add [FEATURE_NAME]')
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/[FEATURE_NAME]`)
-3. Commit your changes (`git commit -m '[DESCRIPTIVE_MESSAGE]'`)
-4. Push to the branch (`git push origin feature/[FEATURE_NAME]`)
-5. Open a Pull Request
+Push to the branch (git push origin feature/[FEATURE_NAME])
 
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
+Open a Pull Request
 
-## Release History
+Release History
+0.1.0
 
-- 0.2.1
-  - CHANGE:
-- 0.2.0
-  - CHANGE:
-  - ADD:
-- 0.1.1
-  - FIX:
-- 0.1.0
-  - First real release
-  - CHANGE:
-- 0.0.1
-  - Initial Version
+Initial release with infrastructure, application, and CI/CD
 
-## Contact
+Contact
+Misha Philip - LinkedIn - [michaelpgilippyev@gmail.com]
 
-[YOUR_NAME] - LinkedIn - [EMAIL]
+Project Link: https://github.com/misha-philip/DevOps-portfolio-develeap
 
-Project Link: [https://github.com/[USERNAME]/[REPOSITORY]](https://github.com/[USERNAME]/[REPOSITORY])
+Acknowledgments
+AWS Documentation
 
-## Acknowledgments
+HashiCorp Terraform Modules
 
-- [ACKNOWLEDGMENT_1]
-- [ACKNOWLEDGMENT_2]
-- [ACKNOWLEDGMENT_3]
+Docker and Kubernetes communities
